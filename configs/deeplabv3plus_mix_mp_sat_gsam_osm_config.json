@@ -1,0 +1,98 @@
+{
+    "name": "osm",
+    "n_gpu": 1,
+    "sat_arch": {
+        "type": "FusePlusSatDeepLabV3Plus",
+        "args": {
+            "in_channels": 3,
+            "encoder_name": "resnet34",
+            "encoder_weights": "imagenet",
+            "classes": 1,
+            "activation": "sigmoid",
+            "use_dsam": false
+        }
+    },
+    "par_arch": {
+        "type": "FusePlusParDeepLabV3Plus",
+        "args": {
+            "in_channels": 1,
+            "encoder_name": "resnet34",
+            "encoder_weights": "imagenet",
+            "classes": 1,
+            "activation": "sigmoid",
+            "use_dsam": false,
+            "use_gsam": true,
+            "use_gate": true,
+            "use_att": true
+        }
+    },
+    "train_data_loader": {
+        "type": "OSMDataLoader",
+        "args":{
+            "data_dir": "../data/osm",
+            "mode": "train",
+            "file_list": "../data/osm/train.txt",
+            "batch_size": 4,
+            "ratio": "mix",
+            "shuffle": true,
+            "num_workers": 8
+        }
+    },
+    "valid_data_loader": {
+        "type": "OSMDataLoader",
+        "args":{
+            "data_dir": "../data/osm",
+            "mode": "valid",
+            "file_list": "../data/osm/valid.txt",
+            "batch_size": 1,
+            "ratio": "mix",
+            "shuffle": false,
+            "num_workers": 8
+        }
+    },
+    "test_data_loader": {
+        "type": "OSMDataLoader",
+        "args":{
+            "data_dir": "../data/osm",
+            "mode": "test",
+            "file_list": "../data/osm/test.txt",
+            "batch_size": 1,
+            "ratio": "mix",
+            "shuffle": false,
+            "num_workers": 8
+        }
+    },
+    "optimizer": {
+        "type": "Adam",
+        "args": {
+            "lr": 0.0002,
+            "weight_decay": 0.0002,
+            "betas": [0.5, 0.999],
+            "amsgrad": false
+        }
+    },
+    "loss": ["bce_dice_loss", "mp_loss"],
+    "lr_scheduler": {
+        "type": "ReduceLROnPlateau",
+        "args": {
+            "mode": "max",
+            "factor": 0.2,
+            "patience": 5
+        }
+    },
+    "trainer": {
+        "epochs": 200,
+        "save_dir": "saved/",
+        "save_period": 10,
+        "verbosity": 2,
+        "monitor": "max val_metrics_mIoU",
+        "early_stop": 20,
+        "tensorboardX": true,
+        "log_dir": "saved/runs",
+        "pretrained_sat": null,
+        "lambda_1": 30,
+        "weight_sat": 1,
+        "weight_par": 1,
+        "weight_par_par": null
+    }
+}
